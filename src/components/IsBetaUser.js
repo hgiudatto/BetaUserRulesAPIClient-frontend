@@ -11,7 +11,7 @@ const IsBetaUser = () => {
   const [valid, setValid] = useState(false);
 
   useEffect(() => {
-    setIsBeta(false);
+    setSubmitted(false);
   }, []);
 
   const [values, setValues] = useState({
@@ -44,6 +44,15 @@ const IsBetaUser = () => {
     }));
   };
 
+  const cleanup = (event) => {
+    setValues((values) => ({
+      ...values,
+      fiid: "",
+      documentType: "",
+      documentNumber: "",
+    }));
+  };
+
   // Ok - https://www.freecodecamp.org/news/beginner-react-project-build-basic-forms-using-react-hooks/
 
   const handleSubmit = (e) => {
@@ -51,15 +60,24 @@ const IsBetaUser = () => {
     if (values.fiid && values.documentType && values.documentNumber) {
       setValid(true);
     }
-    setSubmitted(true);
-    axios.post("/isBetaUser", values).then((res) => {
-      console.log("Response de la consulta a /isBetaUser: ", res);
-      console.log("Response Data: ", res.data);
-      setTimeout(() => {
-        window.location.reload();
-      }, 5000);
-      res.data.message === "Es Beta User" && setIsBeta(true);
-    });
+
+    axios
+      .get("/isBetaUser", {
+        params: {
+          fiid: values.fiid,
+          document_type: values.documentType,
+          document: values.documentNumber,
+        },
+      })
+      .then((res) => {
+        console.log("Response de la consulta a /isBetaUser: ", res);
+        console.log("Response Data: ", res.data);
+        /* setTimeout(() => {
+          window.location.reload();
+        }, 5000); */
+        setSubmitted(true);
+        res.data.message === "Es Beta User" && setIsBeta(true);
+      });
   };
 
   return (
@@ -115,7 +133,7 @@ const IsBetaUser = () => {
           </button>
         )}
       </form>
-      <ResultIsBetaUser result={isBeta} />
+      {submitted && <ResultIsBetaUser result={isBeta} />}
     </div>
   );
 };
